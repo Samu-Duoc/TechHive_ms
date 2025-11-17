@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuarios")
@@ -53,7 +53,7 @@ public class Usuario {
 
     // Fecha de registro del usuario
     @Column(name = "fecha_registro", nullable = false)
-    private LocalDate fechaRegistro;
+    private LocalDateTime fechaRegistro;
     
 
     // Estado del usuario (Activo, Inactivo, Suspendido, etc.)
