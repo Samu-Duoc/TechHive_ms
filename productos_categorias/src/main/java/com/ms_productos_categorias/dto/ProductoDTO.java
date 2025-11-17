@@ -1,0 +1,22 @@
+package com.ms_productos_categorias.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
+public class ProductoDTO {
+    private Long id;
+    private String nombre;
+    private String descripcion;
+    private Integer stock;
+    private Double precio;
+    private String estado;           // Nuevo o retroaconcionado
+    private String categoria;        // Nombre de la categoría
+    private String disponibilidad;   // Disponible o no disponible, segun el stock
+}
