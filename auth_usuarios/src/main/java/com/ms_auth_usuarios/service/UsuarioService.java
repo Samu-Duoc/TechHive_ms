@@ -86,4 +86,22 @@ public class UsuarioService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         return toDTO(usuario);
     }
+
+    //Actulizar un usuario por ID
+    public UsuarioDTO actualizarUsuario(Long id, RegistroUsuarioDTO dto) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        //Compos basicos para la actualizar
+        usuario.setNombre(dto.getNombre());
+        usuario.setApellido(dto.getApellido());
+        usuario.setRut(dto.getRut());
+        usuario.setEmail(dto.getEmail());
+        usuario.setPassword(dto.getPassword());
+        usuario.setTelefono(dto.getTelefono());
+        usuario.setDireccion(dto.getDireccion());
+
+        Usuario actualizado = usuarioRepository.save(usuario);
+        return toDTO(actualizado);
+    }
 }
