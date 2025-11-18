@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
-    List<Producto> findByCategoria_Nombre(Long categoriaId);
+    // Buscar productos por el nombre de la categoría (categoria.nombre)
+    List<Producto> findByCategoriaNombre(String nombre);
 
-    // categoria es = atrubuto de Producto
-    // nombre es = atributo de Categoria
+    //categoria = atributo de Producto
+    //nombre =  atributo de Categoria
 
 }
