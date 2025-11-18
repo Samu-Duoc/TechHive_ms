@@ -23,7 +23,7 @@ public class ProductoService {
 
         // Listar productos filtrando por nombre de categoría
     public List<ProductoDTO> listarPorCategoria(String nombreCategoria) {
-        return productoRepository.findByCategoria_Nombre(nombreCategoria)
+        return productoRepository.findByCategoriaNombre(nombreCategoria)
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -116,5 +116,24 @@ public class ProductoService {
             throw new IllegalArgumentException("Producto no encontrado");
         }
         productoRepository.deleteById(id);
+    }
+
+    // Listar todos los productos
+    public List<ProductoDTO> listarProductos() {
+        return productoRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    // Actualizar solo el stock de un producto (sobre carga usada por el controller)
+    public ProductoDTO actualizar(Long id, Integer stock) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+
+        producto.setStock(stock);
+        Producto actualizado = productoRepository.save(producto);
+
+        return toDTO(actualizado);
     }
 }
