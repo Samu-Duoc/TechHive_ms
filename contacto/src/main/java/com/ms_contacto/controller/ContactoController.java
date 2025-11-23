@@ -1,43 +1,37 @@
 package com.ms_contacto.controller;
 
-import com.ms_contacto.dto.ContactoDTO;
-import com.ms_contacto.dto.CrearContactoDTO;
+import com.ms_contacto.model.Contacto;
 import com.ms_contacto.service.ContactoService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/contacto")
-@RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173") // React Vite
 public class ContactoController {
 
-    private final ContactoService contactoService;
+    @Autowired
+    private ContactoService contactoService;
 
-    // Cliente (web) envía mensaje de contacto
-    @PostMapping
-    public ContactoDTO crear(@Valid @RequestBody CrearContactoDTO dto) {
-        return contactoService.crearMensaje(dto);
+    @PostMapping("/guardar")
+    public Contacto guardarContacto(@RequestBody Contacto contacto) {
+        return contactoService.guardarContacto(contacto);
     }
 
-    // Cliente ve sus mensajes (opcional)
-    @GetMapping("/usuario/{usuarioId}")
-    public List<ContactoDTO> listarPorUsuario(@PathVariable String usuarioId) {
-        return contactoService.listarPorUsuario(usuarioId);
+    @GetMapping("/listar")
+    public List<Contacto> listar() {
+        return contactoService.listar();
     }
 
-    // Admin ve todos los mensajes
-    @GetMapping
-    public List<ContactoDTO> listarTodos() {
-        return contactoService.listarTodos();
+    @GetMapping("/{id}")
+    public Contacto buscarPorId(@PathVariable Long id) {
+        return contactoService.buscarPorId(id);
     }
 
-    // Admin cambia estado: pendiente / respondido
-    @PatchMapping("/{contactoId}/estado")
-    public ContactoDTO cambiarEstado(@PathVariable String contactoId,@RequestParam String estado) {
-        return contactoService.cambiarEstado(contactoId, estado);
+    //SOLO ADMIN (la vista admin)
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable Long id) {
+        contactoService.eliminar(id);
     }
 }

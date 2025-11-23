@@ -1,32 +1,25 @@
 package com.ms_contacto.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "contacto")
-@Data
+@Getter
+@Setter
 public class Contacto {
-    
-    @Id
-    @Column(name = "contacto_id")
-    private String contactoId;
 
-    @Column(name = "usuario_id", nullable = false)
-    private String usuarioId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, length = 100)
-    private String asunto;
+    private String nombre;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = 100)
+    private String email;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String mensaje;
-
-    @Column(name = "fecha_envio", nullable = false)
-    private LocalDateTime fechaEnvio;
-
-    @Column(nullable = false)
-    private String estado; // pendiente / respondido
-
 }

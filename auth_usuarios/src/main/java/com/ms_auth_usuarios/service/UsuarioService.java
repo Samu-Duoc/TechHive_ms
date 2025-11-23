@@ -63,21 +63,21 @@ public class UsuarioService {
         return toDTO(usuario);
     }
 
-    // Metodo para convertir Usuario a UsuarioDTO
+   // Metodo para convertir Usuario a UsuarioDTO
     private UsuarioDTO toDTO(Usuario usuario) {
         return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .nombre(usuario.getNombre())
-                .apellido(usuario.getApellido())
-                .email(usuario.getEmail())
-                .rut(usuario.getRut())
-                .telefono(usuario.getTelefono())
-                .direccion(usuario.getDireccion())
-                .rol(usuario.getRol().name())
-                .estado(usuario.getEstado())
-                .fechaRegistro(usuario.getFechaRegistro())
-                .build();
-    }
+            .id(usuario.getId())
+            .nombre(usuario.getNombre())
+            .apellido(usuario.getApellido())
+            .email(usuario.getEmail())
+            .rut(formatRut(usuario.getRut()))   // 👈 AQUÍ EL FORMATEO
+            .telefono(usuario.getTelefono())
+            .direccion(usuario.getDireccion())
+            .rol(usuario.getRol().name())
+            .estado(usuario.getEstado())
+            .fechaRegistro(usuario.getFechaRegistro())
+            .build();
+        }
 
 
     //Metodo para obtener Usuario por ID
@@ -104,4 +104,30 @@ public class UsuarioService {
         Usuario actualizado = usuarioRepository.save(usuario);
         return toDTO(actualizado);
     }
+
+    private String formatRut(String rut) {
+    if (rut == null || rut.length() < 2) {
+        return rut;
+    }
+
+    // último dígito = dígito verificador
+    String dv = rut.substring(rut.length() - 1);
+    String body = rut.substring(0, rut.length() - 1);
+
+    // damos vuelta el body para poner puntos cada 3
+    StringBuilder reversed = new StringBuilder(body).reverse();
+    StringBuilder withDots = new StringBuilder();
+
+    for (int i = 0; i < reversed.length(); i++) {
+        if (i > 0 && i % 3 == 0) {
+            withDots.append(".");
+        }
+        withDots.append(reversed.charAt(i));
+    }
+
+    // lo volvemos a dar vuelta y agregamos guion
+    String formattedBody = withDots.reverse().toString();
+    return formattedBody + "-" + dv;
+    }
+
 }

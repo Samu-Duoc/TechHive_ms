@@ -1,66 +1,47 @@
 package com.ms_contacto.service;
 
-import com.ms_contacto.dto.ContactoDTO;
-import com.ms_contacto.dto.CrearContactoDTO;
+
 import com.ms_contacto.model.Contacto;
 import com.ms_contacto.repository.ContactoRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+
+import java.util.Optional;
 import java.util.List;
-import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class ContactoService {
 
-    private final ContactoRepository contactoRepository;
+    @Autowired
+    private ContactoRepository contactoRepository;
 
-    public ContactoDTO crearMensaje(CrearContactoDTO dto) {
-        Contacto c = new Contacto();
-        c.setContactoId(UUID.randomUUID().toString());
-        c.setUsuarioId(dto.getUsuarioId());
-        c.setAsunto(dto.getAsunto());
-        c.setMensaje(dto.getMensaje());
-        c.setFechaEnvio(LocalDateTime.now());
-        c.setEstado("pendiente");
-
-        c = contactoRepository.save(c);
-        return toDTO(c);
+    // Guardar
+    public Contacto guardarContacto(Contacto contacto) {
+        if (contacto.getNombre() == null || contacto.getNombre().isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede estar vacío");
+        }
+        return contactoRepository.save(contacto);
     }
 
-    public List<ContactoDTO> listarPorUsuario(String usuarioId) {
-        return contactoRepository.findByUsuarioIdOrderByFechaEnvioDesc(usuarioId)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+    // Listar todos
+    public List<Contacto> listar() {
+        return contactoRepository.findAll();
     }
 
-    public List<ContactoDTO> listarTodos() {
-        return contactoRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .toList();
+    // Buscar por id
+    public Contacto buscarPorId(Long id) {
+        Optional<Contacto> resultado = contactoRepository.findById(id);
+        return resultado.orElseThrow(
+                () -> new RuntimeException("Contacto con ID " + id + " no encontrado")
+        );
     }
 
-    public ContactoDTO cambiarEstado(String contactoId, String nuevoEstado) {
-        Contacto c = contactoRepository.findById(contactoId)
-                .orElseThrow(() -> new RuntimeException("Mensaje no encontrado"));
-
-        c.setEstado(nuevoEstado);
-        c = contactoRepository.save(c);
-        return toDTO(c);
-    }
-
-    private ContactoDTO toDTO(Contacto c) {
-        ContactoDTO dto = new ContactoDTO();
-        dto.setContactoId(c.getContactoId());
-        dto.setUsuarioId(c.getUsuarioId());
-        dto.setAsunto(c.getAsunto());
-        dto.setMensaje(c.getMensaje());
-        dto.setFechaEnvio(c.getFechaEnvio());
-        dto.setEstado(c.getEstado());
-        return dto;
+    // Eliminar por id (Admin)
+    public void eliminar(Long id) {
+        if (!contactoRepository.existsById(id)) {
+            throw new RuntimeException("Contacto con ID " + id + " no existe");
+        }
+        contactoRepository.deleteById(id);
     }
 }

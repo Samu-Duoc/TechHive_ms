@@ -30,7 +30,7 @@ public class Usuario {
     @Column(nullable = false, length = 80)
     private String apellido;
 
-    @Column(nullable = false, unique = true, length = 9)
+    @Column(nullable = false, unique = true, length = 12)
     private String rut;
 
     @Column(nullable = false, unique = true)
