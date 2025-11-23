@@ -24,6 +24,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.obtenerUsuarioPorId(id));
     }
 
+    // Listar todos los usuarios
+    @GetMapping
+    public ResponseEntity<java.util.List<UsuarioDTO>> listarUsuarios() {
+        return ResponseEntity.ok(usuarioService.obtenerTodos());
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> actualizar (@PathVariable Long id, @Valid @RequestBody RegistroUsuarioDTO dto){
 

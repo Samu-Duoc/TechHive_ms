@@ -105,6 +105,14 @@ public class UsuarioService {
         return toDTO(actualizado);
     }
 
+    // Obtener todos los usuarios (como DTOs)
+    public java.util.List<UsuarioDTO> obtenerTodos() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
     private String formatRut(String rut) {
     if (rut == null || rut.length() < 2) {
         return rut;
