@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/contacto")
-@CrossOrigin(origins = "http://localhost:5173") // React Vite
+@CrossOrigin(origins = "*") // React Vite "http://localhost:5173")
 public class ContactoController {
 
     @Autowired
