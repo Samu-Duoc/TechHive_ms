@@ -14,7 +14,7 @@ public class PedidoPagoController {
 
     private final PedidoPagoService pedidoPagoService;
 
-    // POST /api/pedidos/pagar
+    // POST /pedidos/pagar
     @PostMapping("/pagar")
     public ComprobantePagoDTO pagar(@RequestBody CrearPedidoPagoDTO dto) {
         return pedidoPagoService.crearPedidoYPago(dto);
