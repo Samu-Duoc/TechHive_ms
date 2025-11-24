@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 
+
 public class Producto {
 
     @Id
@@ -39,7 +40,10 @@ public class Producto {
     private Integer stock;
 
     @Column(nullable = false)
-    private String estado; // Ejemplo: "Nuevo", "Reacondicionado"
+    private String estado;
+
+    @Column(nullable = false, unique = true, length = 50) 
+    private String sku;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)

@@ -16,7 +16,9 @@ public class ProductoDTO {
     private String descripcion;
     private Integer stock;
     private Double precio;
-    private String estado;           // Nuevo o retroaconcionado
-    private String categoria;        // Nombre de la categoría
-    private String disponibilidad;   // Disponible o no disponible, segun el stock
+    private String estado;
+    private String categoria;
+    private String disponibilidad;
+    private String sku;
+    
 }

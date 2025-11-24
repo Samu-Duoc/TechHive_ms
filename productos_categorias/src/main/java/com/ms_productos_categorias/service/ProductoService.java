@@ -60,17 +60,19 @@ public class ProductoService {
 
     // Convertir de model a DTO
     private ProductoDTO toDTO(Producto producto) {
-        return ProductoDTO.builder()
-                .id(producto.getId())
-                .nombre(producto.getNombre())
-                .descripcion(producto.getDescripcion())
-                .precio(producto.getPrecio())
-                .categoria(producto.getCategoria().getNombre())
-                .stock(producto.getStock())
-                .estado(producto.getEstado())
-                .disponibilidad(calcularDisponibilidad(producto.getStock()))
-                .build();
-    }
+    return ProductoDTO.builder()
+            .id(producto.getId())
+            .nombre(producto.getNombre())
+            .descripcion(producto.getDescripcion())
+            .precio(producto.getPrecio())
+            .categoria(producto.getCategoria().getNombre())
+            .stock(producto.getStock())
+            .estado(producto.getEstado())
+            .disponibilidad(calcularDisponibilidad(producto.getStock()))
+            .sku(producto.getSku())
+            .build();
+}
+
 
     //Logica de disponibilidad basada en el stock
     private String calcularDisponibilidad(Integer stock) {
