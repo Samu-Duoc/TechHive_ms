@@ -15,4 +15,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     //categoria = atributo de Producto
     //nombre =  atributo de Categoria
 
+    // Verificar existencia por SKU para evitar duplicados
+    boolean existsBySku(String sku);
+
 }

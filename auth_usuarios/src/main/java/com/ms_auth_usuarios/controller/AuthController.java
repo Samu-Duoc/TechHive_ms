@@ -1,9 +1,7 @@
 package com.ms_auth_usuarios.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.ms_auth_usuarios.dto.LoginRequestDTO;
+import com.ms_auth_usuarios.dto.RecuperarClaveDTO;
 import com.ms_auth_usuarios.dto.RegistroUsuarioDTO;
 import com.ms_auth_usuarios.dto.UsuarioDTO;
 import com.ms_auth_usuarios.service.UsuarioService;
@@ -19,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 
 public class AuthController {
 
@@ -38,4 +37,11 @@ public class AuthController {
         return ResponseEntity.ok(usuario);
     }
 
+    //Recuperar Clave
+    @PostMapping("/recuperar-clave")
+    public ResponseEntity<String> recuperarClave(@Valid @RequestBody RecuperarClaveDTO dto) {
+    usuarioService.actualizarPasswordPorEmail(dto);
+    return ResponseEntity.ok("Contraseña actualizada correctamente");
+    }
+    //para esa verificacion del recuperar es solo logica, no es ncesario ingreagr un correo real
 }

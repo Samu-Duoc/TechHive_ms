@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/contacto")
-@CrossOrigin(origins = "*") // React Vite "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 public class ContactoController {
 
     @Autowired
@@ -22,12 +22,13 @@ public class ContactoController {
     @GetMapping("/listar")
     public List<Contacto> listar() {
         return contactoService.listar();
-    }
+}
 
     @GetMapping("/{id}")
     public Contacto buscarPorId(@PathVariable Long id) {
         return contactoService.buscarPorId(id);
     }
+
 
     //SOLO ADMIN (la vista admin)
     @DeleteMapping("/{id}")

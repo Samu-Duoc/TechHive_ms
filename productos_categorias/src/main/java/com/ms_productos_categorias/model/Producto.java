@@ -6,12 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "productos")
@@ -34,7 +36,7 @@ public class Producto {
     private String descripcion;
 
     @Column(nullable = false)
-    private Double precio;
+    private BigDecimal precio;
 
     @Column(nullable = false)
     private Integer stock;
@@ -42,10 +44,14 @@ public class Producto {
     @Column(nullable = false)
     private String estado;
 
-    @Column(nullable = false, unique = true, length = 50) 
+    @Column(nullable = false, unique = true, length = 50)
     private String sku;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
+
+    @Lob
+    @Column(name = "imagen", columnDefinition = "LONGBLOB")  // o BLOB según tu BD
+    private byte[] imagen;
 }

@@ -7,7 +7,9 @@ import com.ms_productos_categorias.service.ProductoService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/productos")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class ProductoController {
 
     private final ProductoService productoService;
@@ -38,6 +41,18 @@ public class ProductoController {
     @PostMapping
     public ResponseEntity<ProductoDTO> crear(@RequestBody ProductoDTO dto) {
         return ResponseEntity.ok(productoService.crear(dto));
+    }
+
+    @PostMapping(
+            value = "/{id}/imagen",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> subirImagen(
+            @PathVariable Long id,
+            @RequestParam("archivo") MultipartFile archivo) {
+
+        productoService.actualizarImagen(id, archivo);
+        return ResponseEntity.ok("Imagen subida correctamente");
     }
 
 
