@@ -9,7 +9,6 @@ import com.ms_pedidos_pagos.model.Pedido;
 import com.ms_pedidos_pagos.repository.DetallePedidoRepository;
 import com.ms_pedidos_pagos.repository.PagoRepository;
 import com.ms_pedidos_pagos.repository.PedidoRepository;
-import com.ms_pedidos_pagos.webclient.CarritoClient;
 import com.ms_pedidos_pagos.webclient.ProductoClient;
 import com.ms_pedidos_pagos.webclient.UsuarioClient;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,6 @@ public class PedidoPagoService {
     private final PagoRepository pagoRepository;
 
     private final UsuarioClient usuarioClient;
-    private final CarritoClient carritoClient;
     private final ProductoClient productoClient;
 
     @Transactional
@@ -43,13 +41,7 @@ public class PedidoPagoService {
             throw new RuntimeException("Usuario no encontrado. No se puede crear el pedido.");
         }
 
-        // 2) Obtener o crear carrito (para que no se caiga si BD nueva está vacía)
-        Map<String, Object> carrito = carritoClient.getOrCreateCarritoByUsuarioId(usuarioId);
-        if (carrito == null || carrito.isEmpty()) {
-            throw new RuntimeException("No se pudo obtener/crear el carrito para usuarioId=" + usuarioId);
-        }
-
-        // 3) Crear Pedido
+        // 2) Crear Pedido
         Pedido pedido = new Pedido();
         pedido.setPedidoId(UUID.randomUUID().toString());
 
@@ -63,7 +55,7 @@ public class PedidoPagoService {
 
         pedido = pedidoRepository.save(pedido);
 
-        // 4) Detalles + stock
+        // 3) Detalles + stock
         for (ItemPedidoDTO item : dto.getItems()) {
 
             Long productoId = item.getProductoId(); 
@@ -89,7 +81,7 @@ public class PedidoPagoService {
             productoClient.descontarStock(productoId, item.getCantidad());
         }
 
-        // 5) Pago
+        // 4) Pago
         Pago pago = new Pago();
         pago.setPagosId(UUID.randomUUID().toString());
         pago.setMetodoPago(dto.getMetodoPago());
@@ -98,7 +90,7 @@ public class PedidoPagoService {
         pago.setMonto(dto.getTotal());
         pagoRepository.save(pago);
 
-        // 6) Comprobante
+        // 5) Comprobante
         ComprobantePagoDTO comprobante = new ComprobantePagoDTO();
         comprobante.setMensaje("Compra realizada con éxito");
         comprobante.setPedidoId(pedido.getPedidoId());
