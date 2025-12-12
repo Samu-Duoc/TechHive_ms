@@ -18,7 +18,7 @@ public class Pedido {
     private String pedidoId;
 
     @Column(name = "usuario_id", nullable = false)
-    private String usuarioId;
+    private Long usuarioId;
 
     @Column(name = "direccion_id", nullable = false)
     private String direccionId;

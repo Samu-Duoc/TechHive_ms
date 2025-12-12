@@ -19,7 +19,7 @@ public class DetallePedido {
     private Pedido pedido;
 
     @Column(name = "producto_id", nullable = false)
-    private String productoId;
+    private Long productoId;
 
     @Column(nullable = false)
     private Integer cantidad;

@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class CrearPedidoPagoDTO {
 
-    private String usuarioId;
+    private Long usuarioId;
     private String direccionId;
     private String metodoPago; // "WEB", "TRANSFERENCIA", etc.
     private BigDecimal total;  // total calculado en el frontend
