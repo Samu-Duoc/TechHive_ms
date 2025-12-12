@@ -9,9 +9,9 @@ import com.ms_pedidos_pagos.model.Pedido;
 import com.ms_pedidos_pagos.repository.DetallePedidoRepository;
 import com.ms_pedidos_pagos.repository.PagoRepository;
 import com.ms_pedidos_pagos.repository.PedidoRepository;
-import com.ms_pedidos_pagos.webclient.UsuarioClient;
 import com.ms_pedidos_pagos.webclient.CarritoClient;
 import com.ms_pedidos_pagos.webclient.ProductoClient;
+import com.ms_pedidos_pagos.webclient.UsuarioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,6 @@ public class PedidoPagoService {
     private final DetallePedidoRepository detallePedidoRepository;
     private final PagoRepository pagoRepository;
 
-    //nuevos clientes WebClient al estilo del profe
     private final UsuarioClient usuarioClient;
     private final CarritoClient carritoClient;
     private final ProductoClient productoClient;
@@ -38,24 +37,25 @@ public class PedidoPagoService {
     public ComprobantePagoDTO crearPedidoYPago(CrearPedidoPagoDTO dto) {
 
         // 1) Validar usuario en ms_auth_usuarios
-        Long usuarioId = Long.parseLong(dto.getUsuarioId());
+        Long usuarioId = dto.getUsuarioId(); 
         Map<String, Object> usuario = usuarioClient.getUsuarioById(usuarioId);
         if (usuario == null || usuario.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado. No se puede crear el pedido.");
         }
 
-        // (Opcional: podrías validar estado = "Activo", rol, etc. leyendo el Map)
-
-        //Obtener carrito desde ms_carrito (si quieres usarlo como respaldo)
-        Map<String, Object> carrito = carritoClient.getCarritoByUsuarioId(usuarioId);
+        // 2) Obtener o crear carrito (para que no se caiga si BD nueva está vacía)
+        Map<String, Object> carrito = carritoClient.getOrCreateCarritoByUsuarioId(usuarioId);
         if (carrito == null || carrito.isEmpty()) {
-            throw new RuntimeException("El usuario no tiene carrito. No se puede crear el pedido.");
+            throw new RuntimeException("No se pudo obtener/crear el carrito para usuarioId=" + usuarioId);
         }
 
-        // Crear Pedido
+        // 3) Crear Pedido
         Pedido pedido = new Pedido();
         pedido.setPedidoId(UUID.randomUUID().toString());
-        pedido.setUsuarioId(dto.getUsuarioId());
+
+        //si tu Pedido.usuarioId ahora es Long, usa esto:
+        pedido.setUsuarioId(usuarioId);
+
         pedido.setDireccionId(dto.getDireccionId());
         pedido.setTotal(dto.getTotal());
         pedido.setEstado("PAGADO");
@@ -63,19 +63,19 @@ public class PedidoPagoService {
 
         pedido = pedidoRepository.save(pedido);
 
-        //Crear DetallePedido por cada ítem y descontar stock en productos
+        // 4) Detalles + stock
         for (ItemPedidoDTO item : dto.getItems()) {
 
-            Long productoId = Long.parseLong(item.getProductoId());
+            Long productoId = item.getProductoId(); 
 
-            //validar producto y stock actual
-            Map<String, Object> producto = productoClient.getProductoById(productoId);
-            // aquí podrías leer "stock" desde el Map y comparar con item.getCantidad()
+            // valida producto (si no existe, lanza excepción clara)
+            productoClient.getProductoById(productoId);
 
             DetallePedido det = new DetallePedido();
             det.setDetallePId(UUID.randomUUID().toString());
             det.setPedido(pedido);
-            det.setProductoId(item.getProductoId());
+            det.setProductoId(productoId);
+
             det.setCantidad(item.getCantidad());
             det.setPrecioUnitario(item.getPrecioUnitario());
 
@@ -85,21 +85,20 @@ public class PedidoPagoService {
 
             detallePedidoRepository.save(det);
 
-            // Descontar stock en ms_productos_categorias
+            // descontar stock usando endpoint real /{id}/stock
             productoClient.descontarStock(productoId, item.getCantidad());
         }
 
-        //Crear registro de pago
+        // 5) Pago
         Pago pago = new Pago();
         pago.setPagosId(UUID.randomUUID().toString());
-        pago.setPedidoId(pedido.getPedidoId());
         pago.setMetodoPago(dto.getMetodoPago());
         pago.setFechaPago(LocalDateTime.now());
         pago.setEstado("APROBADO");
         pago.setMonto(dto.getTotal());
         pagoRepository.save(pago);
 
-        // Armar comprobante para el frontend
+        // 6) Comprobante
         ComprobantePagoDTO comprobante = new ComprobantePagoDTO();
         comprobante.setMensaje("Compra realizada con éxito");
         comprobante.setPedidoId(pedido.getPedidoId());
