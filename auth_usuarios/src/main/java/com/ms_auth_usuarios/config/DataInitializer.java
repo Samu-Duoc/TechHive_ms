@@ -35,22 +35,6 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             usuarioRepository.save(admin);
         }
-
-        if (!usuarioRepository.existsByEmail("vendedor@techhive.cl")) {
-            Usuario vendedor = Usuario.builder()
-                    .nombre("Vendedor")
-                    .apellido("Tienda")
-                    .rut("22222222-2")
-                    .email("vendedor@techhive.cl")
-                    .password(passwordEncoder.encode("Vendedor123*"))
-                    .telefono("888888888")
-                    .direccion("Sucursal La tienda online")
-                    .rol(Rol.VENDEDOR)
-                    .estado("Activo")
-                    .fechaRegistro(LocalDateTime.now())
-                    .build();
-            usuarioRepository.save(vendedor);
-        }
     }
 }
 
