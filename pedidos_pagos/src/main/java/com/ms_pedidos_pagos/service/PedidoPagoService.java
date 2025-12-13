@@ -12,13 +12,16 @@ import com.ms_pedidos_pagos.repository.PedidoRepository;
 import com.ms_pedidos_pagos.webclient.ProductoClient;
 import com.ms_pedidos_pagos.webclient.UsuarioClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,21 +36,61 @@ public class PedidoPagoService {
 
     @Transactional
     public ComprobantePagoDTO crearPedidoYPago(CrearPedidoPagoDTO dto) {
-
-        // 1) Validar usuario en ms_auth_usuarios
-        Long usuarioId = dto.getUsuarioId(); 
-        Map<String, Object> usuario = usuarioClient.getUsuarioById(usuarioId);
-        if (usuario == null || usuario.isEmpty()) {
-            throw new RuntimeException("Usuario no encontrado. No se puede crear el pedido.");
+        // 0) Validaciones básicas
+        if (dto.getUsuarioId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "usuarioId es obligatorio");
+        }
+        if (dto.getItems() == null || dto.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El pedido no puede venir sin items");
         }
 
-        // 2) Crear Pedido
+        // 1) Validar usuario en ms_auth_usuarios
+        Long usuarioId = dto.getUsuarioId();
+        Map<String, Object> usuario = usuarioClient.getUsuarioById(usuarioId);
+        if (usuario == null || usuario.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Usuario no encontrado. No se puede crear el pedido.");
+        }
+
+        // 2) Validar stock antes de crear el pedido (agrupando cantidades por producto)
+        Map<Long, Integer> qtyPorProducto = dto.getItems().stream()
+                .collect(Collectors.groupingBy(
+                        ItemPedidoDTO::getProductoId,
+                        Collectors.summingInt(i -> i.getCantidad() == null ? 0 : i.getCantidad())
+                ));
+
+        for (Map.Entry<Long, Integer> entry : qtyPorProducto.entrySet()) {
+            Long productoId = entry.getKey();
+            Integer cantidadTotal = entry.getValue();
+
+            if (productoId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productoId inválido");
+            }
+            if (cantidadTotal == null || cantidadTotal <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Cantidad inválida para productoId=" + productoId);
+            }
+
+            Map<String, Object> producto = productoClient.getProductoById(productoId);
+            Integer stock = extraerEntero(producto.get("stock"));
+            if (stock == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "No pude leer stock del productoId=" + productoId + " (campo 'stock' no viene en la respuesta)");
+            }
+
+            if (cantidadTotal > stock) {
+                String nombre = String.valueOf(producto.getOrDefault("name", "Producto"));
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Stock insuficiente: " + nombre + " (ID=" + productoId + "). Disponible=" + stock + ", solicitado=" + cantidadTotal
+                );
+            }
+        }
+
+        // 3) Crear Pedido (ya validado stock)
         Pedido pedido = new Pedido();
         pedido.setPedidoId(UUID.randomUUID().toString());
-
-        //si tu Pedido.usuarioId ahora es Long, usa esto:
         pedido.setUsuarioId(usuarioId);
-
         pedido.setDireccionId(dto.getDireccionId());
         pedido.setTotal(dto.getTotal());
         pedido.setEstado("PAGADO");
@@ -55,13 +98,9 @@ public class PedidoPagoService {
 
         pedido = pedidoRepository.save(pedido);
 
-        // 3) Detalles + stock
+        // 4) Detalles
         for (ItemPedidoDTO item : dto.getItems()) {
-
-            Long productoId = item.getProductoId(); 
-
-            // valida producto (si no existe, lanza excepción clara)
-            productoClient.getProductoById(productoId);
+            Long productoId = item.getProductoId();
 
             DetallePedido det = new DetallePedido();
             det.setDetallePId(UUID.randomUUID().toString());
@@ -76,12 +115,14 @@ public class PedidoPagoService {
             det.setSubtotal(subtotal);
 
             detallePedidoRepository.save(det);
-
-            // descontar stock usando endpoint real /{id}/stock
-            productoClient.descontarStock(productoId, item.getCantidad());
         }
 
-        // 4) Pago
+        // Descontar stock una sola vez por producto (cantidad total)
+        for (Map.Entry<Long, Integer> entry : qtyPorProducto.entrySet()) {
+            productoClient.descontarStock(entry.getKey(), entry.getValue());
+        }
+
+        // 5) Pago
         Pago pago = new Pago();
         pago.setPagosId(UUID.randomUUID().toString());
         pago.setPedidoId(pedido.getPedidoId());
@@ -91,7 +132,7 @@ public class PedidoPagoService {
         pago.setMonto(dto.getTotal());
         pagoRepository.save(pago);
 
-        // 5) Comprobante
+        // 6) Comprobante
         ComprobantePagoDTO comprobante = new ComprobantePagoDTO();
         comprobante.setMensaje("Compra realizada con éxito");
         comprobante.setPedidoId(pedido.getPedidoId());
@@ -100,5 +141,22 @@ public class PedidoPagoService {
         comprobante.setMetodoPago(pago.getMetodoPago());
 
         return comprobante;
+    }
+
+    // Helper seguro para leer "stock" como Integer aunque venga Double/String/etc.
+    private Integer extraerEntero(Object value) {
+        if (value == null) return null;
+        if (value instanceof Integer) return (Integer) value;
+        if (value instanceof Long) return ((Long) value).intValue();
+        if (value instanceof Double) return ((Double) value).intValue();
+        if (value instanceof Float) return ((Float) value).intValue();
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String) value);
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 }
