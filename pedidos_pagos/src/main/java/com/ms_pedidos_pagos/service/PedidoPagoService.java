@@ -84,6 +84,7 @@ public class PedidoPagoService {
         // 4) Pago
         Pago pago = new Pago();
         pago.setPagosId(UUID.randomUUID().toString());
+        pago.setPedidoId(pedido.getPedidoId());
         pago.setMetodoPago(dto.getMetodoPago());
         pago.setFechaPago(LocalDateTime.now());
         pago.setEstado("APROBADO");

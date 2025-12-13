@@ -30,7 +30,8 @@ public class PedidoPagoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public List<Pedido> listarPorUsuario(@PathVariable String usuarioId) {
-        return pedidoRepository.findByUsuarioId(usuarioId);
-    }
+    public List<Pedido> listarPorUsuario(@PathVariable Long usuarioId) {
+    return pedidoRepository.findByUsuarioId(usuarioId);
+}
+
 }
