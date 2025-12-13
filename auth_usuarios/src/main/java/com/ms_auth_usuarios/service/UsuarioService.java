@@ -6,11 +6,14 @@ import com.ms_auth_usuarios.dto.CambiarPasswordDTO;
 import com.ms_auth_usuarios.dto.LoginRequestDTO;
 import com.ms_auth_usuarios.dto.RecuperarClaveDTO;
 import com.ms_auth_usuarios.dto.RegistroUsuarioDTO;
+import com.ms_auth_usuarios.dto.UpdateProfileDTO;
 import com.ms_auth_usuarios.dto.UsuarioDTO;
 import com.ms_auth_usuarios.model.Rol;
 import com.ms_auth_usuarios.model.Usuario;
 import com.ms_auth_usuarios.repository.UsuarioRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
@@ -103,6 +106,25 @@ public class UsuarioService {
         usuario.setRut(dto.getRut());
         usuario.setEmail(dto.getEmail());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
+        usuario.setTelefono(dto.getTelefono());
+        usuario.setDireccion(dto.getDireccion());
+
+        Usuario actualizado = usuarioRepository.save(usuario);
+        return toDTO(actualizado);
+    }
+
+    // Actualizar perfil validando la contraseña actual
+    public UsuarioDTO actualizarUsuarioConPassword(Long id, UpdateProfileDTO dto) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
+        }
+
+        usuario.setNombre(dto.getNombre());
+        usuario.setApellido(dto.getApellido());
+        usuario.setRut(dto.getRut());
         usuario.setTelefono(dto.getTelefono());
         usuario.setDireccion(dto.getDireccion());
 

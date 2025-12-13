@@ -35,7 +35,7 @@ public class Usuario {
     @Column(nullable = false)
     private String password; // encriptada con BCrypt
 
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, length = 9)
     private String telefono;
 
     @Column(nullable = false, length = 200)

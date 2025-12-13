@@ -23,8 +23,8 @@ public class RegistroUsuarioDTO {
     private String email;
     
     @NotBlank
-    @Size(min = 6, max = 8, message = "La contraseña debe tener entre 6 y 8 caracteres")
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[+*]).{6,8}$",message = "La contraseña debe contener al menos una mayúscula y un carácter especial (+ o *)")
+    @Size(min = 8, max = 10, message = "La contraseña debe tener entre 8 y 10 caracteres")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[+*]).{8,10}$", message = "La contraseña debe contener al menos una mayúscula y un carácter especial (+ o *) y tener entre 8 y 10 caracteres")
     private String password;
 
     @NotBlank
