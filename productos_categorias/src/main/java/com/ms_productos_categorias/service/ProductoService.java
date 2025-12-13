@@ -44,10 +44,7 @@ public class ProductoService {
 
     //Crear categoría (recibiendo un ProductoDTO)
     public ProductoDTO crear(ProductoDTO dto) {
-        byte[] imagenBytes = null;
-        if (dto.getImagenBase64()!= null) {
-            imagenBytes = Base64.getDecoder().decode(dto.getImagenBase64());
-        }
+        byte[] imagenBytes = decodeBase64Safe(dto.getImagenBase64());
         // validar sku
         if (dto.getSku() == null || dto.getSku().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SKU es requerido");
@@ -129,7 +126,7 @@ public class ProductoService {
         producto.setEstado(dto.getEstado());
 
         if (dto.getImagenBase64() != null) {
-            producto.setImagen(Base64.getDecoder().decode(dto.getImagenBase64()));
+            producto.setImagen(decodeBase64Safe(dto.getImagenBase64()));
         }
 
         Producto actualizado = productoRepository.save(producto);
@@ -158,6 +155,26 @@ public class ProductoService {
         if (producto.getImagen() == null) return null;
 
         return Base64.getEncoder().encodeToString(producto.getImagen());
+    }
+
+    private byte[] decodeBase64Safe(String base64) {
+        if (base64 == null || base64.isBlank()) {
+            return null;
+        }
+
+        String clean = base64.trim();
+        int comma = clean.indexOf(',');
+        if (comma >= 0) {
+            clean = clean.substring(comma + 1);
+        }
+
+        clean = clean.replaceAll("\\s", "");
+
+        try {
+            return Base64.getDecoder().decode(clean);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "imagenBase64 inválida: " + ex.getMessage());
+        }
     }
 
     //Eliminar producto por ID

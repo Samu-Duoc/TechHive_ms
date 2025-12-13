@@ -1,6 +1,7 @@
 package com.ms_pedidos_pagos.webclient;
 
 import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -42,18 +43,34 @@ public class ProductoClient {
                         .block();
         }
 
+        private Integer extraerEntero(Object value) {
+                if (value == null) return null;
+                if (value instanceof Integer) return (Integer) value;
+                if (value instanceof Long) return ((Long) value).intValue();
+                if (value instanceof Double) return ((Double) value).intValue();
+                if (value instanceof Float) return ((Float) value).intValue();
+                if (value instanceof String) {
+                        try { return Integer.parseInt((String) value); }
+                        catch (Exception ignored) { return null; }
+                }
+                return null;
+        }
+
         public void descontarStock(Long id, Integer cantidad) {
                 Map<String, Object> producto = getProductoById(id);
                 if (producto == null || producto.isEmpty()) {
                 throw new RuntimeException("Producto vacío al consultar (ID=" + id + ")");
                 }
 
-                Object stockObj = producto.get("stock");
-                if (stockObj == null) {
-                throw new RuntimeException("El producto (ID=" + id + ") no trae campo 'stock'");
-                }
+                                // Leer stock de 'stock' o fallback 'cantidad'
+                                Integer stockActual = extraerEntero(producto.get("stock"));
+                                if (stockActual == null) {
+                                        stockActual = extraerEntero(producto.get("cantidad"));
+                                }
 
-                int stockActual = ((Number) stockObj).intValue();
+                                if (stockActual == null) {
+                                throw new RuntimeException("El producto (ID=" + id + ") no trae campo 'stock' ni 'cantidad'");
+                                }
 
                 if (cantidad == null || cantidad <= 0) {
                 throw new RuntimeException("Cantidad inválida para descontar stock: " + cantidad);
