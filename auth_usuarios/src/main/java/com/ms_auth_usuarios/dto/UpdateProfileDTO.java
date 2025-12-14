@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class UpdateProfileDTO {
+
     @NotBlank
     private String nombre;
 
@@ -19,9 +20,4 @@ public class UpdateProfileDTO {
 
     @NotBlank
     private String direccion;
-
-    @NotBlank
-    private String currentPassword; // <- clave para confirmar
-
-    // getters/setters
 }

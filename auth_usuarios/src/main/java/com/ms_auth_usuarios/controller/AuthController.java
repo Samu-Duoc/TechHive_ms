@@ -2,6 +2,7 @@ package com.ms_auth_usuarios.controller;
 
 import com.ms_auth_usuarios.dto.LoginRequestDTO;
 import com.ms_auth_usuarios.dto.RecuperarClaveDTO;
+import com.ms_auth_usuarios.dto.RecuperarClaveSeguraDTO;
 import com.ms_auth_usuarios.dto.RegistroUsuarioDTO;
 import com.ms_auth_usuarios.dto.UsuarioDTO;
 import com.ms_auth_usuarios.service.UsuarioService;
@@ -43,4 +44,11 @@ public class AuthController {
     return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
     //para esa verificacion del recuperar es solo logica, no es ncesario ingreagr un correo real
+
+    @PostMapping("/recuperar-clave-segura")
+    public ResponseEntity<String> recuperarClaveSegura(@Valid @RequestBody RecuperarClaveSeguraDTO dto) {
+        usuarioService.actualizarPasswordPorEmailConRespuesta(dto);
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
+    }
+
 }

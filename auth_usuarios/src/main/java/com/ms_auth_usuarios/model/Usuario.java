@@ -49,6 +49,13 @@ public class Usuario {
     private String estado; // "Activo", "Inactivo"
 
     private LocalDateTime fechaRegistro;
+
+    @Column(name="pregunta_seguridad", length = 120)
+    private String preguntaSeguridad;
+
+    @Column(name="respuesta_seguridad", nullable = true)
+    private String respuestaSeguridad; // guardarla HASHEADA (BCrypt)
+
 }
 
 

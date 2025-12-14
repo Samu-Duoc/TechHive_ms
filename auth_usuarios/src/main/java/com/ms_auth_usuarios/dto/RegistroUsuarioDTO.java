@@ -16,6 +16,7 @@ public class RegistroUsuarioDTO {
     private String apellido;
 
     @NotBlank
+    @Pattern(regexp = "^\\d{7,8}-?[0-9K]$", message = "El RUT debe tener formato válido (ej: 12345678-K o 12345678K)")
     private String rut;
 
     @Email
@@ -23,8 +24,8 @@ public class RegistroUsuarioDTO {
     private String email;
     
     @NotBlank
-    @Size(min = 8, max = 10, message = "La contraseña debe tener entre 8 y 10 caracteres")
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[+*]).{8,10}$", message = "La contraseña debe contener al menos una mayúscula y un carácter especial (+ o *) y tener entre 8 y 10 caracteres")
+    @Size(min = 8, message = "La contraseña debe tener mínimo 8 caracteres")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]).{8,}$", message = "La contraseña debe contener mayúscula, minúscula, número y carácter especial")
     private String password;
 
     @NotBlank
