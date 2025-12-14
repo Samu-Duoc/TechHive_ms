@@ -2,7 +2,9 @@ package com.ms_pedidos_pagos.service;
 
 import com.ms_pedidos_pagos.dto.ComprobantePagoDTO;
 import com.ms_pedidos_pagos.dto.CrearPedidoPagoDTO;
+import com.ms_pedidos_pagos.dto.ItemDetalleDTO;
 import com.ms_pedidos_pagos.dto.ItemPedidoDTO;
+import com.ms_pedidos_pagos.dto.PedidoDetalleDTO;
 import com.ms_pedidos_pagos.model.DetallePedido;
 import com.ms_pedidos_pagos.model.Pago;
 import com.ms_pedidos_pagos.model.Pedido;
@@ -158,5 +160,69 @@ public class PedidoPagoService {
             }
         }
         return null;
+    }
+
+    public Pedido actualizarEstado(String pedidoId, String nuevoEstado) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Pedido con ID " + pedidoId + " no encontrado"));
+
+        // Validar que el estado sea válido
+        String[] estadosValidos = {"CONFIRMADO", "PREPARANDO", "EN_TRANSITO", "ENTREGADO", "CANCELADO"};
+        boolean estadoValido = false;
+        for (String estado : estadosValidos) {
+            if (estado.equals(nuevoEstado)) {
+                estadoValido = true;
+                break;
+            }
+        }
+
+        if (!estadoValido) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Estado inválido. Estados permitidos: CONFIRMADO, PREPARANDO, EN_TRANSITO, ENTREGADO, CANCELADO");
+        }
+
+        pedido.setEstado(nuevoEstado);
+        return pedidoRepository.save(pedido);
+    }
+
+    public PedidoDetalleDTO getDetalle(String pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Pedido con ID " + pedidoId + " no encontrado"));
+
+        String metodoPago = pagoRepository.findFirstByPedidoId(pedidoId)
+            .map(Pago::getMetodoPago)
+            .orElse("NO_REGISTRADO");
+
+        var detalles = detallePedidoRepository.findByPedido_PedidoId(pedidoId);
+
+        var items = detalles.stream().map(det -> {
+            ItemDetalleDTO it = new ItemDetalleDTO();
+            it.setProductoId(det.getProductoId());
+            it.setCantidad(det.getCantidad());
+            it.setPrecioUnitario(det.getPrecioUnitario());
+            it.setSubtotal(det.getSubtotal());
+            try {
+                var prod = productoClient.getProductoById(det.getProductoId());
+                String nombre = String.valueOf(prod.getOrDefault("nombre", prod.getOrDefault("name", "Producto")));
+                it.setNombreProducto(nombre);
+            } catch (Exception e) {
+                it.setNombreProducto("Producto");
+            }
+            return it;
+        }).toList();
+
+        PedidoDetalleDTO dto = new PedidoDetalleDTO();
+        dto.setPedidoId(pedido.getPedidoId());
+        dto.setUsuarioId(pedido.getUsuarioId());
+        dto.setDireccionId(pedido.getDireccionId());
+        dto.setTotal(pedido.getTotal());
+        dto.setEstado(pedido.getEstado());
+        dto.setFecha(pedido.getFecha());
+        dto.setMetodoPago(metodoPago);
+        dto.setItems(items);
+
+        return dto;
     }
 }

@@ -1,5 +1,6 @@
 package com.ms_pedidos_pagos.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,8 +15,9 @@ public class DetallePedido {
     @Column(name = "detalleP_id")
     private String detallePId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pedido_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "pedido_id")
+    @JsonIgnore
     private Pedido pedido;
 
     @Column(name = "producto_id", nullable = false)
