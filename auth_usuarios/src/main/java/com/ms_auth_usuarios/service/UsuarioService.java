@@ -27,6 +27,8 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String DEFAULT_SECURITY_QUESTION = "¿Cuál es el nombre de tu primera mascota?";
+
     // Limpiar RUT: recibe "22.350.485-6" o "22350485-6" y retorna "223504856" (solo dígitos)
     private String limpiarRut(String rut) {
         if (rut == null) return null;
@@ -46,6 +48,17 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El RUT ya está registrado");
         }
 
+        String preguntaSeguridad = (dto.getPreguntaSeguridad() == null || dto.getPreguntaSeguridad().isBlank())
+            ? DEFAULT_SECURITY_QUESTION
+            : dto.getPreguntaSeguridad().trim();
+
+        String respuestaSeguridad = dto.getRespuestaSeguridad();
+        String respuestaSeguridadHash = null;
+        if (respuestaSeguridad != null && !respuestaSeguridad.isBlank()) {
+            String normalizada = respuestaSeguridad.trim().toLowerCase();
+            respuestaSeguridadHash = passwordEncoder.encode(normalizada);
+        }
+
         Usuario usuario = Usuario.builder()
                 .nombre(dto.getNombre())
                 .apellido(dto.getApellido())
@@ -54,6 +67,8 @@ public class UsuarioService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .direccion(dto.getDireccion())
                 .telefono(dto.getTelefono())
+            .preguntaSeguridad(preguntaSeguridad)
+            .respuestaSeguridad(respuestaSeguridadHash)
                 .rol(Rol.CLIENTE)
                 .estado("Activo")
                 .fechaRegistro(LocalDateTime.now())
@@ -158,8 +173,13 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
         }
 
-        usuario.setPreguntaSeguridad(dto.getPregunta());
-        usuario.setRespuestaSeguridad(passwordEncoder.encode(dto.getRespuesta()));
+        String pregunta = (dto.getPregunta() == null || dto.getPregunta().isBlank())
+                ? DEFAULT_SECURITY_QUESTION
+                : dto.getPregunta().trim();
+        String respuestaNormalizada = dto.getRespuesta().trim().toLowerCase();
+
+        usuario.setPreguntaSeguridad(pregunta);
+        usuario.setRespuestaSeguridad(passwordEncoder.encode(respuestaNormalizada));
         usuarioRepository.save(usuario);
     }
 
@@ -172,7 +192,9 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No tiene pregunta de seguridad configurada");
         }
 
-        if (!passwordEncoder.matches(dto.getRespuesta(), usuario.getRespuestaSeguridad())) {
+        String respuestaNormalizada = dto.getRespuesta().trim().toLowerCase();
+
+        if (!passwordEncoder.matches(respuestaNormalizada, usuario.getRespuestaSeguridad())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Respuesta incorrecta");
         }
 

@@ -33,5 +33,10 @@ public class RegistroUsuarioDTO {
 
     @NotBlank
     private String direccion;
+
+    // Opcional: configurar QA al registrar
+    private String preguntaSeguridad;
+
+    private String respuestaSeguridad;
 }
 
